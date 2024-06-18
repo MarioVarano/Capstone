@@ -13,6 +13,8 @@ public class Request {
     @NotEmpty(message = "La mail non puo' essere vuoto")
     @Email
     private String email;
+    @NotEmpty(message = "La password non puo' essere vuota")
+    private String password;
     @NotEmpty(message = "La specializzazione non puo' essere vuoto")
     private String specializzazione;
     @NotEmpty(message = "La descrizione non puo' essere vuoto")

@@ -1,5 +1,6 @@
 package it.epicode.backend.capstone.utente;
 
+import it.epicode.backend.capstone.ruoli.Ruoli;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
@@ -13,6 +14,10 @@ public class Request {
     private String email;
     @NotEmpty(message = "La password non puo' essere vuota")
     private String password;
-    @NotEmpty(message = "Il ruolo non puo' essere vuoto")
-    private String ruolo;
+    @NotEmpty(message = "La città non puo' essere vuota")
+    private String città;
+    @NotEmpty(message = "Il telefono non puo' essere vuoto")
+    private String telefono;
+
+
 }

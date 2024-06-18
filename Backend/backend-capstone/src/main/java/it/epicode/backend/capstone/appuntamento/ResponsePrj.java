@@ -5,9 +5,11 @@ import org.springframework.beans.factory.annotation.Value;
 import java.sql.Timestamp;
 
 public interface ResponsePrj {
-    @Value("#{target.utente.nome}") // l'annotazione Value recupera la posizione dell'elemento richiesto all'interno della classe
+    @Value("#{target.utente.nome} #{target.utente.cognome}")
     String getNomeUtente();
-    @Value("#{target.professionista.nome}") // l'annotazione Value recupera la posizione dell'elemento richiesto all'interno della classe
+
+    @Value("#{target.professionista.nome} #{target.professionista.cognome}")
     String getNomeProfessionista();
+
     Timestamp getDataOra();
 }

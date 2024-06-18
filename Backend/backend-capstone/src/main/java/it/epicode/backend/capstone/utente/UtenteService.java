@@ -53,6 +53,7 @@ public class UtenteService {
         Response response = new Response();
         BeanUtils.copyProperties(entity, response);
         utenteRepository.save(entity);
+        response.setId(entity.getId());
         return response;
     }
 

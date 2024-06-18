@@ -1,28 +1,20 @@
 package it.epicode.backend.capstone.professionista;
 
 import it.epicode.backend.capstone.appuntamento.Appuntamento;
+import it.epicode.backend.capstone.base.BaseEntity;
 import it.epicode.backend.capstone.prestazione.Prestazione;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = "professionista")
-public class Professionista {
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
+public class Professionista extends BaseEntity {
 
-    @Column(nullable = false)
-    private String nome;
-    @Column(nullable = false)
-    private String cognome;
-    @Column(nullable = false, unique = true)
-    private String email;
-    @Column(nullable = false)
-    private String password;
 
     @Column(nullable = false)
     private String specializzazione;
@@ -30,8 +22,7 @@ public class Professionista {
     @Column(nullable = false)
     private String descrizione;
 
-    @Column(nullable = false)
-    private String città;
+
 
     //@OneToMany(mappedBy = "professionista", cascade = CascadeType.ALL)
     //private List<Prestazione> prestazioni;

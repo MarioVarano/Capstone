@@ -10,5 +10,5 @@ public class Response {
     private String email;
     private String specializzazione;
     private String descrizione;
-    private String indirizzoStudio;
+    private String città;
 }

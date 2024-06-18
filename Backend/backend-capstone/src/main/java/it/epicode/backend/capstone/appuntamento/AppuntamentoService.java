@@ -1,6 +1,7 @@
 package it.epicode.backend.capstone.appuntamento;
 
 
+import it.epicode.backend.capstone.enums.Stato;
 import it.epicode.backend.capstone.professionista.Professionista;
 import it.epicode.backend.capstone.professionista.ProfessionistaRepository;
 import it.epicode.backend.capstone.utente.ResponsePrj;
@@ -13,9 +14,12 @@ import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
 import java.time.DayOfWeek;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Optional;
+import java.time.LocalDateTime;
 
 @Service
 public class AppuntamentoService {
@@ -36,19 +40,27 @@ public class AppuntamentoService {
                 .orElseThrow(() -> new RuntimeException("Utente non trovato"));
         Professionista professionista = professionistaRepository.findById(request.getIdProfessionista())
                 .orElseThrow(() -> new RuntimeException("Professionista non trovato"));
+
+        LocalTime oraPrenotazione = LocalTime.parse(request.getOraPrenotazione());
+        LocalDateTime dataOraPrenotazione = LocalDateTime.of(request.getDataPrenotazione(), oraPrenotazione);
+
         Appuntamento appuntamento = new Appuntamento();
-        BeanUtils.copyProperties(request, appuntamento);
         appuntamento.setUtente(utente);
         appuntamento.setProfessionista(professionista);
-        validateAppuntamento(appuntamento);
+        appuntamento.setDataPrenotazione(request.getDataPrenotazione());
+        appuntamento.setOraPrenotazione(String.valueOf(oraPrenotazione));
+        appuntamento.setStato(Stato.RICHIESTO); // O qualsiasi stato iniziale sia necessario
+        // Validazione appuntamento
+        appuntamento.validateAppuntamento();
         if (!isAppointmentSlotAvailable(appuntamento)) {
             throw new IllegalArgumentException("L'orario richiesto è già occupato.");
         }
+
+        // Salvataggio appuntamento e creazione risposta
+        appuntamentoRepository.save(appuntamento);
         Response response = new Response();
         BeanUtils.copyProperties(appuntamento, response);
-        appuntamentoRepository.save(appuntamento);
         return response;
-
     }
 
 
@@ -69,7 +81,7 @@ public class AppuntamentoService {
         entity.setProfessionista(professionista);
         entity.setUtente(utente);
         appuntamentoRepository.save(entity);
-        validateAppuntamento(entity);
+        entity.validateAppuntamento();
 
         if (!isAppointmentSlotAvailable(entity)) {
             throw new IllegalArgumentException("L'orario richiesto è già occupato.");
@@ -102,38 +114,19 @@ public class AppuntamentoService {
         return appuntamentoRepository.findAllBy();
     }
 
-    private void validateAppuntamento(Appuntamento appuntamento) {
-        LocalDateTime appointmentDateTime = appuntamento.getDataOra().toLocalDateTime();
-        DayOfWeek dayOfWeek = appointmentDateTime.getDayOfWeek();
-        int hour = appointmentDateTime.getHour();
-
-        if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
-            throw new IllegalArgumentException("Gli appuntamenti possono essere presi solo dal lunedì al venerdì.");
-        }
-
-        if (hour < 9 || hour >= 17) {
-            throw new IllegalArgumentException("Gli appuntamenti possono essere presi solo tra le 9 e le 17.");
-        }
-
-        if (!appointmentDateTime.plusHours(1).toLocalDate().equals(appointmentDateTime.toLocalDate())) {
-            throw new IllegalArgumentException("Gli appuntamenti devono durare un'ora.");
-        }
-    }
-
     private boolean isAppointmentSlotAvailable(Appuntamento appuntamento) {
-        List<Appuntamento> existingAppointments = appuntamentoRepository.findByProfessionistaIdAndDataOraBetween(
-                appuntamento.getProfessionista().getId(),
-                Timestamp.valueOf(appuntamento.getDataOra().toLocalDateTime().withHour(9).withMinute(0).withSecond(0).withNano(0)),
-                Timestamp.valueOf(appuntamento.getDataOra().toLocalDateTime().withHour(17).withMinute(0).withSecond(0).withNano(0))
-        );
-
-        for (Appuntamento existingAppointment : existingAppointments) {
-            if (existingAppointment.getDataOra().equals(appuntamento.getDataOra())) {
-                return false;
-            }
-        }
-        return true;
+        List<Appuntamento> existingAppointments = appuntamentoRepository
+                .findByProfessionistaIdAndDataPrenotazioneAndOraPrenotazione(
+                        appuntamento.getProfessionista().getId(),
+                        appuntamento.getDataPrenotazione(),
+                        appuntamento.getOraPrenotazione()
+                );
+        return existingAppointments.isEmpty();
     }
+
+
+
+
 
 
 }

@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -13,8 +14,8 @@ public class Request {
     @NotEmpty(message = "Id utente deve esserci")
     private Long idUtente;
     @NotEmpty(message = "Orario necessario")
-    private Timestamp dataOra;
+    private String oraPrenotazione;
     @NotEmpty(message = "Data necessaria")
-    private LocalDateTime dataPrenotazione;
+    private LocalDate dataPrenotazione;
 
 }

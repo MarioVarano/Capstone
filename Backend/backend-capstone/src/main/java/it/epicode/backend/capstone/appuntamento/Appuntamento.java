@@ -1,49 +1,57 @@
 package it.epicode.backend.capstone.appuntamento;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import it.epicode.backend.capstone.enums.Stato;
-import it.epicode.backend.capstone.prestazione.Prestazione;
 import it.epicode.backend.capstone.professionista.Professionista;
 import it.epicode.backend.capstone.utente.Utente;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 
-import java.sql.Timestamp;
 import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Data
+@Entity
+@Table(name = "appuntamenti")
 public class Appuntamento {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "professionista_id", nullable = false)
+    @ToString.Exclude
+    @JsonIgnoreProperties("appuntamenti")
     private Professionista professionista;
+
     @ManyToOne
-    @JoinColumn(name = "utente_id", nullable = false)
+    @ToString.Exclude
+    @JsonIgnoreProperties("appuntamenti")
     private Utente utente;
     //@ManyToOne
     //@JoinColumn(name = "prestazione_id")
     //private Prestazione prestazione;
 
     @Column(nullable = false)
-    private Timestamp dataOra;
+    private String oraPrenotazione;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Stato stato;
-    private LocalDateTime dataPrenotazione;
+    private LocalDate dataPrenotazione;
 
 
-    @Column(nullable = false)
+    /*
+   @Column(nullable = false)
     private String messaggio;
+   */
 
 
-    // Verifica se l'appuntamento è in un orario e giorno validi
     @PrePersist
     @PreUpdate
-    private void validateAppuntamento() {
-        LocalDateTime appointmentDateTime = dataOra.toLocalDateTime();
+    void validateAppuntamento() {
+        LocalDateTime appointmentDateTime = LocalDateTime.of(dataPrenotazione, LocalTime.parse(oraPrenotazione));
         DayOfWeek dayOfWeek = appointmentDateTime.getDayOfWeek();
         int hour = appointmentDateTime.getHour();
 
@@ -59,6 +67,4 @@ public class Appuntamento {
             throw new IllegalArgumentException("Gli appuntamenti devono durare un'ora.");
         }
     }
-
-
 }
