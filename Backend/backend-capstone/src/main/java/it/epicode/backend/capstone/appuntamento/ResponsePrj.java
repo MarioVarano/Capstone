@@ -3,13 +3,18 @@ package it.epicode.backend.capstone.appuntamento;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
 
 public interface ResponsePrj {
-    @Value("#{target.utente.nome} #{target.utente.cognome}")
-    String getNomeUtente();
+    Long getId();
 
-    @Value("#{target.professionista.nome} #{target.professionista.cognome}")
-    String getNomeProfessionista();
+    @Value("#{target.utente.nome + ' ' + target.utente.cognome}")
+    String getNomeCompletoUtente();
 
-    Timestamp getDataOra();
+    @Value("#{target.professionista.nome + ' ' + target.professionista.cognome}")
+    String getNomeCompletoProfessionista();
+
+    String getOraPrenotazione();
+
+    LocalDate getdataPrenotazione();
 }

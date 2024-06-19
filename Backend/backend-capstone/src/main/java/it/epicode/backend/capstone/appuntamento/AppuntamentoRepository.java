@@ -1,6 +1,5 @@
 package it.epicode.backend.capstone.appuntamento;
 
-import it.epicode.backend.capstone.utente.ResponsePrj;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -16,6 +15,10 @@ public interface AppuntamentoRepository extends JpaRepository<Appuntamento,Long>
 
     List<Appuntamento> findByProfessionistaIdAndDataPrenotazioneAndOraPrenotazione(
             Long id, LocalDate dataPrenotazione, String oraPrenotazione);
+
+    List<Appuntamento> findByUtenteId(Long utenteId);
+    List<Appuntamento> findByProfessionistaId(Long professionistaId);
 }
+
 
 

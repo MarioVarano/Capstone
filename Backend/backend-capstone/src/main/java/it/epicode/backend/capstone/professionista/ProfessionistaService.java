@@ -1,5 +1,10 @@
 package it.epicode.backend.capstone.professionista;
 
+import it.epicode.backend.capstone.appuntamento.Appuntamento;
+import it.epicode.backend.capstone.appuntamento.AppuntamentoRepository;
+import it.epicode.backend.capstone.professionista.appuntamentoDTO.ProfessionistaAppuntamentoDTO;
+import it.epicode.backend.capstone.professionista.appuntamentoDTO.UtenteDTO;
+import it.epicode.backend.capstone.utente.ResponsePrj;
 import it.epicode.backend.capstone.utente.Utente;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
@@ -9,13 +14,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProfessionistaService {
     @Autowired
     private ProfessionistaRepository professionistaRepository;
 
-    public List<Response> findAll() {
+    @Autowired
+    AppuntamentoRepository appuntamentoRepository;
+
+    public List<ResponsePrj> findAll() {
         return professionistaRepository.findAllBy();
     }
 
@@ -59,6 +68,26 @@ public class ProfessionistaService {
         professionistaRepository.deleteById(id);
         return "Professionista eliminato";
     }
+    public List<ProfessionistaAppuntamentoDTO> getAppuntamentiByProfessionistaId(Long professionistaId) {
+        List<Appuntamento> appuntamenti = appuntamentoRepository.findByProfessionistaId(professionistaId);
+        return appuntamenti.stream().map(this::convertToProfessionistaAppuntamentoDTO).collect(Collectors.toList());
+    }
 
+    private ProfessionistaAppuntamentoDTO convertToProfessionistaAppuntamentoDTO(Appuntamento appuntamento) {
+        ProfessionistaAppuntamentoDTO dto = new ProfessionistaAppuntamentoDTO();
+        dto.setId(appuntamento.getId());
+        dto.setDataPrenotazione(appuntamento.getDataPrenotazione().toString());
+        dto.setOraPrenotazione(appuntamento.getOraPrenotazione());
+        dto.setStato(appuntamento.getStato());
+
+        UtenteDTO utenteDTO = new UtenteDTO();
+        utenteDTO.setId(appuntamento.getUtente().getId());
+        utenteDTO.setNome(appuntamento.getUtente().getNome());
+        utenteDTO.setCognome(appuntamento.getUtente().getCognome());
+        utenteDTO.setEmail(appuntamento.getUtente().getEmail());
+
+        dto.setUtente(utenteDTO);
+        return dto;
+    }
 }
 

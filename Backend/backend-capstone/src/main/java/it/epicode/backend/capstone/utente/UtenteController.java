@@ -1,6 +1,7 @@
 package it.epicode.backend.capstone.utente;
 
 
+import it.epicode.backend.capstone.utente.appuntamentoDTO.UtenteAppuntamentoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,4 +44,10 @@ public class UtenteController {
     public ResponseEntity<String> delete(@PathVariable Long id){
         return ResponseEntity.ok(service.delete(id));
     }
+    @GetMapping("/{utenteId}/appuntamenti")
+    public List<UtenteAppuntamentoDTO> getAppuntamentiByUtenteId(@PathVariable Long utenteId) {
+        return service.getAppuntamentiByUtenteId(utenteId);
+    }
 }
+
+

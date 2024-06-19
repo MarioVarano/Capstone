@@ -1,9 +1,7 @@
 package it.epicode.backend.capstone.appuntamento;
 
-import it.epicode.backend.capstone.utente.ResponsePrj;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,9 +19,10 @@ public class AppuntamentoController {
     }
 
     // Metodo per ottenere tutti gli appuntamenti.
-    @GetMapping
-    public ResponseEntity<List<ResponsePrj>> findAll() {
-        return ResponseEntity.ok(appuntamentoService.findAll());
+    @GetMapping("/all")
+    public ResponseEntity<List<ResponsePrj>> findAllAppuntamenti() {
+        List<ResponsePrj> response = appuntamentoService.findAll();
+        return ResponseEntity.ok(response);
     }
 
     // Metodo per creare un nuovo appuntamento.
@@ -42,6 +41,19 @@ public class AppuntamentoController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable Long id) {
         return ResponseEntity.ok(appuntamentoService.deleteAppointment(id));
+    }
+
+
+
+    @GetMapping("/utente/{utenteId}")
+    public List<Appuntamento> getAppuntamentiByUtenteId(@PathVariable Long utenteId) {
+        return appuntamentoService.getAppuntamentiByUtenteId(utenteId);
+    }
+
+    // Endpoint per recuperare tutti gli appuntamenti di un professionista
+    @GetMapping("/professionista/{professionistaId}")
+    public List<Appuntamento> getAppuntamentiByProfessionistaId(@PathVariable Long professionistaId) {
+        return appuntamentoService.getAppuntamentiByProfessionistaId(professionistaId);
     }
 }
 

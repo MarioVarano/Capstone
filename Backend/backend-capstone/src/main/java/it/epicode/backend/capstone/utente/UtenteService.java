@@ -1,6 +1,10 @@
 package it.epicode.backend.capstone.utente;
 
 
+import it.epicode.backend.capstone.appuntamento.Appuntamento;
+import it.epicode.backend.capstone.appuntamento.AppuntamentoRepository;
+import it.epicode.backend.capstone.utente.appuntamentoDTO.ProfessionistaDTO;
+import it.epicode.backend.capstone.utente.appuntamentoDTO.UtenteAppuntamentoDTO;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -11,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -20,6 +25,9 @@ public class UtenteService {
 
     @Autowired
     UtenteRepository utenteRepository;
+
+    @Autowired
+    AppuntamentoRepository appuntamentoRepository;
 
 
     // GET ALL
@@ -85,6 +93,26 @@ public class UtenteService {
         utenteRepository.deleteById(id);
         return "Autore eliminato";
     }
+    public List<UtenteAppuntamentoDTO> getAppuntamentiByUtenteId(Long utenteId) {
+        List<Appuntamento> appuntamenti = appuntamentoRepository.findByUtenteId(utenteId);
+        return appuntamenti.stream().map(this::convertToUtenteAppuntamentoDTO).collect(Collectors.toList());
+    }
 
+    private UtenteAppuntamentoDTO convertToUtenteAppuntamentoDTO(Appuntamento appuntamento) {
+        UtenteAppuntamentoDTO dto = new UtenteAppuntamentoDTO();
+        dto.setId(appuntamento.getId());
+        dto.setDataPrenotazione(appuntamento.getDataPrenotazione().toString());
+        dto.setOraPrenotazione(appuntamento.getOraPrenotazione());
+        dto.setStato(appuntamento.getStato());
+
+        ProfessionistaDTO professionistaDTO = new ProfessionistaDTO();
+        professionistaDTO.setId(appuntamento.getProfessionista().getId());
+        professionistaDTO.setNome(appuntamento.getProfessionista().getNome());
+        professionistaDTO.setCognome(appuntamento.getProfessionista().getCognome());
+        professionistaDTO.setSpecializzazione(appuntamento.getProfessionista().getSpecializzazione());
+
+        dto.setProfessionista(professionistaDTO);
+        return dto;
+    }
 
 }

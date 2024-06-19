@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
@@ -24,7 +25,7 @@ public class Utente extends BaseEntity {
     //private Ruoli ruolo;
 
 
-    @OneToMany(mappedBy = "utente", cascade = CascadeType.ALL)
-    private List<Appuntamento> appuntamenti;
+    @OneToMany(mappedBy = "utente", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Appuntamento> appuntamenti = new ArrayList<>();
 
 }

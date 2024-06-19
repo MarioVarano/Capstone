@@ -1,5 +1,7 @@
 package it.epicode.backend.capstone.professionista;
 
+import it.epicode.backend.capstone.professionista.appuntamentoDTO.ProfessionistaAppuntamentoDTO;
+import it.epicode.backend.capstone.utente.ResponsePrj;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +22,7 @@ public class ProfessionistaController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Response>> findAll() {
+    public ResponseEntity<List<ResponsePrj>> findAll() {
         return ResponseEntity.ok(professionistaService.findAll());
     }
 
@@ -37,5 +39,10 @@ public class ProfessionistaController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable Long id) {
         return ResponseEntity.ok(professionistaService.delete(id));
+    }
+
+    @GetMapping("/{professionistaId}/appuntamenti")
+    public List<ProfessionistaAppuntamentoDTO> getAppuntamentiByProfessionistaId(@PathVariable Long professionistaId) {
+        return professionistaService.getAppuntamentiByProfessionistaId(professionistaId);
     }
 }

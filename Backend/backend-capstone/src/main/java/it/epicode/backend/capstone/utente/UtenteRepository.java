@@ -1,5 +1,6 @@
 package it.epicode.backend.capstone.utente;
 
+import it.epicode.backend.capstone.appuntamento.Appuntamento;
 import it.epicode.backend.capstone.professionista.Professionista;
 import org.springframework.data.jpa.repository.JpaRepository;
 
