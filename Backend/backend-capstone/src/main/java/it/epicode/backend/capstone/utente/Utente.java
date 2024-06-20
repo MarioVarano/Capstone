@@ -20,12 +20,18 @@ public class Utente extends BaseEntity {
     @Column(nullable = false)
     private String telefono;
 
-    //@ManyToOne
-    //@JoinColumn(name = "ruolo_id", nullable = false)
-    //private Ruoli ruolo;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "utente_ruolo",
+            joinColumns = @JoinColumn(name = "utente_id"),
+            inverseJoinColumns = @JoinColumn(name = "ruolo_id")
+    )
+    private final List<Ruoli> ruoli = new ArrayList<>();
 
 
     @OneToMany(mappedBy = "utente", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Appuntamento> appuntamenti = new ArrayList<>();
+
+
 
 }

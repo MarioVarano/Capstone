@@ -14,7 +14,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Ruoli {
     public static final String ROLES_ADMIN = "ADMIN";
-    public static final String ROLES_USER = "USER";
+    public static final String ROLES_UTENTE = "UTENTE";
+    public static final String ROLES_PROFESSIONISTA = "PROFESSIONISTA";
+
 
     @Id
     private String roleType;

@@ -21,4 +21,6 @@ public class BaseEntity {
     private String password;
     @Column(nullable = false)
     private String città;
+    @Column
+    private String avatar;
 }
