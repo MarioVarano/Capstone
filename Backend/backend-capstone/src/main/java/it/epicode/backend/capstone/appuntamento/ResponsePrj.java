@@ -16,5 +16,5 @@ public interface ResponsePrj {
 
     String getOraPrenotazione();
 
-    LocalDate getdataPrenotazione();
+    LocalDate getDataPrenotazione();
 }

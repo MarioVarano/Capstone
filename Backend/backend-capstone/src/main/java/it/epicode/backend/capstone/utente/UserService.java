@@ -108,7 +108,7 @@ public class UserService {
         }
         // Se l'autore esiste, viene eliminato dal database.
         userRepository.deleteById(id);
-        return "Autore eliminato";
+        return "Utente eliminato";
     }
     public List<UtenteAppuntamentoDTO> getAppuntamentiByUtenteId(Long utenteId) {
         List<Appuntamento> appuntamenti = appuntamentoRepository.findByUtenteId(utenteId);
@@ -120,7 +120,6 @@ public class UserService {
         dto.setId(appuntamento.getId());
         dto.setDataPrenotazione(appuntamento.getDataPrenotazione().toString());
         dto.setOraPrenotazione(appuntamento.getOraPrenotazione());
-        dto.setStato(appuntamento.getStato());
 
         ProfessionistaDTO professionistaDTO = new ProfessionistaDTO();
         professionistaDTO.setId(appuntamento.getProfessionista().getId());
@@ -139,16 +138,16 @@ public class UserService {
         try {
             // Effettua il login
             log.debug("Tentativo di autenticazione per username: {}", username);
-            var a = auth.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+            var authentication = auth.authenticate(new UsernamePasswordAuthenticationToken(username, password));
 
             // Imposta il contesto di sicurezza
-            SecurityContextHolder.getContext().setAuthentication(a);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
             var user = userRepository.findOneByUsername(username).orElseThrow(() -> new NoSuchElementException("Utente non trovato"));
             log.debug("Utente trovato: {}", user);
 
-            if (user.getRoles().contains(new Ruoli(Ruoli.ROLES_UTENTE)) || user.getRoles().contains(new Ruoli(Ruoli.ROLES_ADMIN))) {
-                var dto = LoginResponseDTO.builder()
+            if (user.getRoles().stream().anyMatch(role -> role.getRoleType().equals(Ruoli.ROLES_UTENTE) || role.getRoleType().equals(Ruoli.ROLES_ADMIN))) {
+                var userDto = LoginResponseDTO.builder()
                         .withUser(RegisteredUserDTO.builder()
                                 .withId(user.getId())
                                 .withFirstName(user.getFirstName())
@@ -159,12 +158,12 @@ public class UserService {
                                 .withCittà(user.getCittà())
                                 .build())
                         .build();
-                dto.setToken(jwt.generateToken(a));
-                return Optional.of(new LoginResponseWrapper(dto));
-            } else if (user.getRoles().contains(new Ruoli(Ruoli.ROLES_PROFESSIONISTA))) {
+                userDto.setToken(jwt.generateToken(authentication));
+                return Optional.of(new LoginResponseWrapper(userDto));
+            } else if (user.getRoles().stream().anyMatch(role -> role.getRoleType().equals(Ruoli.ROLES_PROFESSIONISTA))) {
                 var professionista = professionistaRepository.findById(user.getId()).orElseThrow(() -> new NoSuchElementException("Professionista non trovato"));
                 log.debug("Professionista trovato: {}", professionista);
-                var dto = LoginResponseProfessionistaDTO.builder()
+                var professionistaDto = LoginResponseProfessionistaDTO.builder()
                         .withProfessionista(RegisteredProfessionistaDTO.builder()
                                 .withId(user.getId())
                                 .withFirstName(user.getFirstName())
@@ -176,8 +175,8 @@ public class UserService {
                                 .withSpecializzazione(professionista.getSpecializzazione())
                                 .build())
                         .build();
-                dto.setToken(jwt.generateToken(a));
-                return Optional.of(new LoginResponseWrapper(dto));
+                professionistaDto.setToken(jwt.generateToken(authentication));
+                return Optional.of(new LoginResponseWrapper(professionistaDto));
             }
         } catch (NoSuchElementException e) {
             log.error("User not found", e);

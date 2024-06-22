@@ -95,8 +95,6 @@ public class ProfessionistaService {
         dto.setId(appuntamento.getId());
         dto.setDataPrenotazione(appuntamento.getDataPrenotazione().toString());
         dto.setOraPrenotazione(appuntamento.getOraPrenotazione());
-        dto.setStato(appuntamento.getStato());
-
         UtenteDTO utenteDTO = new UtenteDTO();
         utenteDTO.setId(appuntamento.getUtente().getId());
         utenteDTO.setNome(appuntamento.getUtente().getFirstName());

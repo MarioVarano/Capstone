@@ -57,25 +57,32 @@ public class ApplicationSecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults()) // Utilizza la configurazione CORS
                 .authorizeHttpRequests(authorize ->
-                                authorize //CONFIGURAZIONE DELLA PROTEZIONE DEI VARI ENDPOINT
-                                        .requestMatchers("/users/login").permitAll()
-                                        .requestMatchers("/users/registerAdmin").permitAll() // DA CANCELLARE DOPO AVER CREATO L'ADMIN
-                                        .requestMatchers(HttpMethod.POST, "/users").permitAll() //ENDPOINT DI REGISTRAZIONE APERTO A TUTTI
-                                        .requestMatchers(HttpMethod.POST, "/professionista").permitAll() //ENDPOINT DI REGISTRAZIONE APERTO A TUTTI
-                                        .requestMatchers(HttpMethod.GET, "/**").authenticated() //TUTTE GLI ENDPOINTS DI TIPO GET SONO RICHIAMABILI SOLO SE L'UTENTE E AUTENTICATO
-                                        .requestMatchers(HttpMethod.POST, "/**").hasAuthority("ADMIN") //TUTTE LE POST POSSONO ESSERE FATTE SOLO DALL'ADMIN
-                                        .requestMatchers(HttpMethod.PUT, "/users/{id}").authenticated() //SOLO UN UTENTE AUTENTICATO PUO MODIFICARE I SUOI DATI
-                                        .requestMatchers(HttpMethod.PUT, "/**").hasAuthority("ADMIN") //TUTTE LE PUT POSSONO ESSERE FATTE SOLO DALL'ADMIN
-                                        .requestMatchers(HttpMethod.DELETE, "/**").hasAuthority("ADMIN") //TUTTE LE DELETE POSSONO ESSERE FATTE SOLO DALL'ADMIN
-                        //.requestMatchers("/**").authenticated() //TUTTO CIO CHE PUO ESSERE SFUGGITO RICHIEDE L'AUTENTICAZIONE (SERVE A GESTIRE EVENTUALI DIMENTICANZE)
+                        authorize // Configurazione della protezione dei vari endpoint
+                                .requestMatchers("/users/login").permitAll()
+                                .requestMatchers("/users/registerAdmin").permitAll() // Da cancellare dopo aver creato l'admin
+                                .requestMatchers(HttpMethod.POST, "/users").permitAll() // Endpoint di registrazione aperto a tutti
+                                .requestMatchers(HttpMethod.POST, "/professionista").permitAll() // Endpoint di registrazione aperto a tutti
+                                .requestMatchers("/api/appuntamento/**").authenticated()
+
+                                // Configurazione CRUD per gli utenti
+                                .requestMatchers("/users/**").hasAnyAuthority("UTENTE", "ADMIN") // Tutte le operazioni per utenti
+
+                                // Configurazione CRUD per i professionisti
+                                .requestMatchers("/professionista/**").hasAnyAuthority("PROFESSIONISTA", "ADMIN") // Tutte le operazioni per professionisti
+
+
+                                // Configurazione che garantisce che gli admin abbiano accesso a tutto
+                                .requestMatchers("/**").hasAuthority("ADMIN")
                 )
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                //COMUNICA ALLA FILTERCHAIN QUALE FILTRO UTILIZZARE, SENZA QUESTA RIGA DI CODICE IL FILTRO NON VIENE RICHIAMATO
+                // Comunica alla filter chain quale filtro utilizzare, senza questa riga di codice il filtro non viene richiamato
                 .addFilterBefore(authenticationJwtToken(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
+
 
     @Bean
     public JavaMailSenderImpl getJavaMailSender(@Value("${gmail.mail.transport.protocol}" )String protocol,

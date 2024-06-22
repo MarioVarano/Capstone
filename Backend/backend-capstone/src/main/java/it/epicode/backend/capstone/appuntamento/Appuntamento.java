@@ -1,7 +1,6 @@
 package it.epicode.backend.capstone.appuntamento;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import it.epicode.backend.capstone.enums.Stato;
 import it.epicode.backend.capstone.professionista.Professionista;
 import it.epicode.backend.capstone.utente.User;
 import jakarta.persistence.*;
@@ -38,9 +37,8 @@ public class Appuntamento {
 
     @Column(nullable = false)
     private String oraPrenotazione;
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Stato stato;
+    private boolean confermato = false;
     private LocalDate dataPrenotazione;
 
 

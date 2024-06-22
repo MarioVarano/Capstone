@@ -18,6 +18,14 @@ public interface AppuntamentoRepository extends JpaRepository<Appuntamento,Long>
 
     List<Appuntamento> findByUtenteId(Long utenteId);
     List<Appuntamento> findByProfessionistaId(Long professionistaId);
+
+
+
+
+    List<Appuntamento> findByUtenteIdAndDataPrenotazioneAndOraPrenotazione(
+            Long utenteId, LocalDate dataPrenotazione, String oraPrenotazione);
+
+
 }
 
 

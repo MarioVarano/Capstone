@@ -2,19 +2,16 @@ package it.epicode.backend.capstone.utente.Auth;
 
 import it.epicode.backend.capstone.professionista.Auth.LoginResponseProfessionistaDTO;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 
 @Data
 public class LoginResponseWrapper {
-    private LoginResponseDTO userResponse;
+    private Object response;
 
-    public LoginResponseWrapper(LoginResponseDTO userResponse) {
-        this.userResponse = userResponse;
+    public LoginResponseWrapper(Object response) {
+        this.response = response;
     }
-
-    public LoginResponseWrapper(LoginResponseProfessionistaDTO professionistaResponse) {
-        this.professionistaResponse = professionistaResponse;
-    }
-
-    private LoginResponseProfessionistaDTO professionistaResponse;
 
 }

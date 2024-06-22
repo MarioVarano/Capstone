@@ -70,7 +70,7 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponseWrapper> login(@RequestBody @Validated LoginModel model, BindingResult validator) {
         if (validator.hasErrors()) {
-            throw  new ApiValidationException(validator.getAllErrors());
+            throw new ApiValidationException(validator.getAllErrors());
         }
         return new ResponseEntity<>(user.login(model.username(), model.password()).orElseThrow(), HttpStatus.OK);
     }

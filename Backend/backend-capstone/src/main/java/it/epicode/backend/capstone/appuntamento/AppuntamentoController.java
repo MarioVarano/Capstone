@@ -19,10 +19,9 @@ public class AppuntamentoController {
     }
 
     // Metodo per ottenere tutti gli appuntamenti.
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity<List<ResponsePrj>> findAllAppuntamenti() {
-        List<ResponsePrj> response = appuntamentoService.findAll();
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(appuntamentoService.findAll());
     }
 
     // Metodo per creare un nuovo appuntamento.
@@ -43,8 +42,6 @@ public class AppuntamentoController {
         return ResponseEntity.ok(appuntamentoService.deleteAppointment(id));
     }
 
-
-
     @GetMapping("/utente/{utenteId}")
     public List<Appuntamento> getAppuntamentiByUtenteId(@PathVariable Long utenteId) {
         return appuntamentoService.getAppuntamentiByUtenteId(utenteId);
@@ -55,5 +52,18 @@ public class AppuntamentoController {
     public List<Appuntamento> getAppuntamentiByProfessionistaId(@PathVariable Long professionistaId) {
         return appuntamentoService.getAppuntamentiByProfessionistaId(professionistaId);
     }
+
+    // Endpoint per confermare un appuntamento
+    @GetMapping("/confirm/{id}")
+    public ResponseEntity<String> confirmAppointment(@PathVariable Long id) {
+        appuntamentoService.confirmAppointment(id);
+        return ResponseEntity.ok("Appuntamento confermato.");
+    }
+
+
+
+
+
+
 }
 

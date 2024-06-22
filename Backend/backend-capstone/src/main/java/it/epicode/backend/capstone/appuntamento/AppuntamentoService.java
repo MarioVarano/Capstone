@@ -1,7 +1,6 @@
 package it.epicode.backend.capstone.appuntamento;
 
 
-import it.epicode.backend.capstone.enums.Stato;
 import it.epicode.backend.capstone.professionista.Professionista;
 import it.epicode.backend.capstone.professionista.ProfessionistaRepository;
 import it.epicode.backend.capstone.utente.User;
@@ -11,6 +10,8 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +33,9 @@ public class AppuntamentoService {
     @Autowired
     ProfessionistaRepository professionistaRepository;
 
+    @Autowired
+    JavaMailSender emailSender;
+
     @Transactional
     public Response createAppointment(@Valid Request request) {
         User utente = userRepository.findById(request.getIdUtente())
@@ -42,27 +46,90 @@ public class AppuntamentoService {
         LocalTime oraPrenotazione = LocalTime.parse(request.getOraPrenotazione());
         LocalDateTime dataOraPrenotazione = LocalDateTime.of(request.getDataPrenotazione(), oraPrenotazione);
 
+        if (utenteHasAppointmentAtTime(utente.getId(), dataOraPrenotazione)) {
+            throw new IllegalArgumentException("L'utente ha già un appuntamento a questo orario.");
+        }
+
         Appuntamento appuntamento = new Appuntamento();
         appuntamento.setUtente(utente);
         appuntamento.setProfessionista(professionista);
         appuntamento.setDataPrenotazione(request.getDataPrenotazione());
         appuntamento.setOraPrenotazione(String.valueOf(oraPrenotazione));
-        appuntamento.setStato(Stato.RICHIESTO); // O qualsiasi stato iniziale sia necessario
+        appuntamento.setConfermato(false);
 
         // Validazione appuntamento
         appuntamento.validateAppuntamento();
-        if (!isAppointmentSlotAvailable(appuntamento)) {
+        if (isAppointmentSlotAvailable(appuntamento)) {
             throw new IllegalArgumentException("L'orario richiesto è già occupato.");
         }
 
         // Salvataggio appuntamento
         appuntamentoRepository.save(appuntamento);
 
+        // Invia email di conferma
+        sendConfirmationEmailToProfessionista(appuntamento);
+
         Response response = new Response();
         BeanUtils.copyProperties(appuntamento, response);
         return response;
     }
 
+    @Transactional
+    public void confirmAppointment(Long id) {
+        Appuntamento appuntamento = appuntamentoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Appuntamento non trovato"));
+
+        appuntamento.setConfermato(true);
+        appuntamentoRepository.save(appuntamento);
+
+        // Invia email di conferma all'utente
+        sendConfirmationEmailToUtente(appuntamento);
+    }
+
+    private boolean utenteHasAppointmentAtTime(Long utenteId, LocalDateTime dataOraPrenotazione) {
+        return !appuntamentoRepository.findByUtenteIdAndDataPrenotazioneAndOraPrenotazione(
+                utenteId, dataOraPrenotazione.toLocalDate(), dataOraPrenotazione.toLocalTime().toString()
+        ).isEmpty();
+    }
+
+
+    private boolean isAppointmentSlotAvailable(Appuntamento appuntamento) {
+        List<Appuntamento> existingAppointments = appuntamentoRepository
+                .findByProfessionistaIdAndDataPrenotazioneAndOraPrenotazione(
+                        appuntamento.getProfessionista().getId(),
+                        appuntamento.getDataPrenotazione(),
+                        appuntamento.getOraPrenotazione()
+                );
+
+        List<Appuntamento> userAppointments = appuntamentoRepository
+                .findByUtenteIdAndDataPrenotazioneAndOraPrenotazione(
+                        appuntamento.getUtente().getId(),
+                        appuntamento.getDataPrenotazione(),
+                        appuntamento.getOraPrenotazione()
+                );
+        log.debug("Existing appointments for professional: {}", existingAppointments);
+        log.debug("Existing appointments for user: {}", userAppointments);
+
+        return !existingAppointments.isEmpty() || !userAppointments.isEmpty();
+    }
+
+    private void sendConfirmationEmailToProfessionista(Appuntamento appuntamento) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(appuntamento.getProfessionista().getEmail());
+        message.setSubject("Nuovo appuntamento da confermare");
+        message.setText("Hai un nuovo appuntamento da confermare. Clicca sul link per confermare: " +
+                "http://localhost:8080/api/appuntamento/confirm/" + appuntamento.getId());
+        emailSender.send(message);
+    }
+
+    private void sendConfirmationEmailToUtente(Appuntamento appuntamento) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(appuntamento.getUtente().getEmail());
+        message.setSubject("Appuntamento confermato");
+        message.setText("Il tuo appuntamento con " + appuntamento.getProfessionista().getFirstName() + " " +
+                appuntamento.getProfessionista().getLastName() + " è stato confermato.");
+        emailSender.send(message);
+    }
 
     public Response updateAppuntamento(Long id, @Valid Request request) {
         if (!appuntamentoRepository.existsById(id)) {
@@ -82,11 +149,11 @@ public class AppuntamentoService {
         entity.setUtente(utente);
         entity.setDataPrenotazione(request.getDataPrenotazione());
         entity.setOraPrenotazione(request.getOraPrenotazione());
-        entity.setStato(Stato.RICHIESTO); // O qualsiasi stato sia necessario
+        entity.setConfermato(false);
 
         entity.validateAppuntamento();
 
-        if (!isAppointmentSlotAvailable(entity)) {
+        if (isAppointmentSlotAvailable(entity)) {
             throw new IllegalArgumentException("L'orario richiesto è già occupato.");
         }
 
@@ -98,40 +165,28 @@ public class AppuntamentoService {
     }
 
     public String deleteAppointment(Long id) {
-      if(!appuntamentoRepository.existsById(id)){
-          throw new EntityNotFoundException("Appuntamento non trovato");
-      }
-      appuntamentoRepository.deleteById(id);
-      return "Appuntamento cancellato";
+        if (!appuntamentoRepository.existsById(id)) {
+            throw new EntityNotFoundException("Appuntamento non trovato");
+        }
+        appuntamentoRepository.deleteById(id);
+        return "Appuntamento cancellato";
     }
 
     public Response getAppointmentById(Long id) {
-       if(!appuntamentoRepository.existsById(id)){
-           throw new EntityNotFoundException("Appuntamento non trovato");
-       }
-       Appuntamento appuntamento = appuntamentoRepository.findById(id).get();
-       Response response = new Response();
-       BeanUtils.copyProperties(appuntamento,response);
-       return response;
+        if (!appuntamentoRepository.existsById(id)) {
+            throw new EntityNotFoundException("Appuntamento non trovato");
+        }
+        Appuntamento appuntamento = appuntamentoRepository.findById(id).get();
+        Response response = new Response();
+        BeanUtils.copyProperties(appuntamento, response);
+        return response;
     }
 
     @Transactional
-    public List<ResponsePrj> findAll(){
+    public List<ResponsePrj> findAll() {
         // Questo metodo restituisce tutti gli appuntamenti presenti nel database.
         return appuntamentoRepository.findAllBy();
     }
-
-    private boolean isAppointmentSlotAvailable(Appuntamento appuntamento) {
-        List<Appuntamento> existingAppointments = appuntamentoRepository
-                .findByProfessionistaIdAndDataPrenotazioneAndOraPrenotazione(
-                        appuntamento.getProfessionista().getId(),
-                        appuntamento.getDataPrenotazione(),
-                        appuntamento.getOraPrenotazione()
-                );
-        return existingAppointments.isEmpty();
-    }
-
-
 
     // Metodo per recuperare tutti gli appuntamenti di un utente specifico
     public List<Appuntamento> getAppuntamentiByUtenteId(Long utenteId) {
