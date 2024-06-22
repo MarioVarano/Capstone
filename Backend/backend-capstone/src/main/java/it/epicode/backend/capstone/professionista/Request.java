@@ -21,5 +21,7 @@ public class Request {
     private String descrizione;
     @NotEmpty(message = "La città non puo' essere vuoto")
     private String città;
+    @NotEmpty(message = "L'avatar non puo' essere vuoto")
+    private String avatar;
 
 }

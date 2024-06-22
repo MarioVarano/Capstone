@@ -4,8 +4,8 @@ package it.epicode.backend.capstone.appuntamento;
 import it.epicode.backend.capstone.enums.Stato;
 import it.epicode.backend.capstone.professionista.Professionista;
 import it.epicode.backend.capstone.professionista.ProfessionistaRepository;
-import it.epicode.backend.capstone.utente.Utente;
-import it.epicode.backend.capstone.utente.UtenteRepository;
+import it.epicode.backend.capstone.utente.User;
+import it.epicode.backend.capstone.utente.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -27,14 +27,14 @@ public class AppuntamentoService {
     AppuntamentoRepository appuntamentoRepository;
 
     @Autowired
-    UtenteRepository utenteRepository;
+    UserRepository userRepository;
 
     @Autowired
     ProfessionistaRepository professionistaRepository;
 
     @Transactional
     public Response createAppointment(@Valid Request request) {
-        Utente utente = utenteRepository.findById(request.getIdUtente())
+        User utente = userRepository.findById(request.getIdUtente())
                 .orElseThrow(() -> new RuntimeException("Utente non trovato"));
         Professionista professionista = professionistaRepository.findById(request.getIdProfessionista())
                 .orElseThrow(() -> new RuntimeException("Professionista non trovato"));
@@ -48,21 +48,16 @@ public class AppuntamentoService {
         appuntamento.setDataPrenotazione(request.getDataPrenotazione());
         appuntamento.setOraPrenotazione(String.valueOf(oraPrenotazione));
         appuntamento.setStato(Stato.RICHIESTO); // O qualsiasi stato iniziale sia necessario
+
         // Validazione appuntamento
         appuntamento.validateAppuntamento();
         if (!isAppointmentSlotAvailable(appuntamento)) {
             throw new IllegalArgumentException("L'orario richiesto è già occupato.");
         }
-        utente.getAppuntamenti().add(appuntamento);
-        log.info("appuntamenti"+ utente.getAppuntamenti());
-        professionista.getAppuntamenti().add(appuntamento);
 
-        // Salva l'utente e il professionista con l'appuntamento aggiornato
-        utenteRepository.save(utente);
-        professionistaRepository.save(professionista);
-
-        // Salvataggio appuntamento e creazione risposta
+        // Salvataggio appuntamento
         appuntamentoRepository.save(appuntamento);
+
         Response response = new Response();
         BeanUtils.copyProperties(appuntamento, response);
         return response;
@@ -76,12 +71,12 @@ public class AppuntamentoService {
         if (!professionistaRepository.existsById(request.getIdProfessionista())) {
             throw new EntityNotFoundException("Professionista non trovato");
         }
-        if (!utenteRepository.existsById(request.getIdUtente())) {
+        if (!userRepository.existsById(request.getIdUtente())) {
             throw new EntityNotFoundException("Utente non trovato");
         }
         Appuntamento entity = appuntamentoRepository.findById(id).get();
         Professionista professionista = professionistaRepository.findById(request.getIdProfessionista()).get();
-        Utente utente = utenteRepository.findById(request.getIdUtente()).get();
+        User utente = userRepository.findById(request.getIdUtente()).get();
 
         entity.setProfessionista(professionista);
         entity.setUtente(utente);

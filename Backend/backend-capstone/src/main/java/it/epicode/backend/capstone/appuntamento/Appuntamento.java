@@ -3,7 +3,7 @@ package it.epicode.backend.capstone.appuntamento;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import it.epicode.backend.capstone.enums.Stato;
 import it.epicode.backend.capstone.professionista.Professionista;
-import it.epicode.backend.capstone.utente.Utente;
+import it.epicode.backend.capstone.utente.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
@@ -22,14 +22,16 @@ public class Appuntamento {
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "professionista_id")
     @ToString.Exclude
     @JsonIgnoreProperties("appuntamenti")
     private Professionista professionista;
 
     @ManyToOne
+    @JoinColumn(name = "utente_id")
     @ToString.Exclude
     @JsonIgnoreProperties("appuntamenti")
-    private Utente utente;
+    private User utente;
     //@ManyToOne
     //@JoinColumn(name = "prestazione_id")
     //private Prestazione prestazione;

@@ -1,21 +1,20 @@
 package it.epicode.backend.capstone.professionista;
 
-import it.epicode.backend.capstone.appuntamento.Appuntamento;
-import it.epicode.backend.capstone.base.BaseEntity;
-import it.epicode.backend.capstone.prestazione.Prestazione;
-import it.epicode.backend.capstone.ruoli.Ruoli;
+import it.epicode.backend.capstone.utente.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
-@Data
 @Entity
 @Table(name = "professionista")
-public class Professionista extends BaseEntity {
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class Professionista extends User {
 
 
     @Column(nullable = false)
@@ -24,19 +23,10 @@ public class Professionista extends BaseEntity {
     @Column(nullable = false)
     private String descrizione;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "professionista_ruolo",
-            joinColumns = @JoinColumn(name = "professionista_id"),
-            inverseJoinColumns = @JoinColumn(name = "ruolo_id")
-    )
-    private final List<Ruoli> ruoli = new ArrayList<>();
 
 
     //@OneToMany(mappedBy = "professionista", cascade = CascadeType.ALL)
     //private List<Prestazione> prestazioni;
 
-    @OneToMany(mappedBy = "professionista", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Appuntamento> appuntamenti = new ArrayList<>();
 }
 
