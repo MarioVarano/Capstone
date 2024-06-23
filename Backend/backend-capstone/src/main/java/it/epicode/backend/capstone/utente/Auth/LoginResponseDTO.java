@@ -5,12 +5,10 @@ import lombok.Data;
 
 @Data
 public class LoginResponseDTO {
-    RegisteredUserDTO user;
     String token;
 
     @Builder(setterPrefix = "with")
-    public LoginResponseDTO(RegisteredUserDTO user, String token) {
-        this.user = user;
+    public LoginResponseDTO(String token) {
         this.token = token;
     }
 }

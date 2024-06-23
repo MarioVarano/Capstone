@@ -59,6 +59,8 @@ public class ApplicationSecurityConfig {
                 .authorizeHttpRequests(authorize ->
                         authorize // Configurazione della protezione dei vari endpoint
                                 .requestMatchers("/users/login").permitAll()
+                                .requestMatchers("/professionista/login").permitAll()
+
                                 .requestMatchers("/users/registerAdmin").permitAll() // Da cancellare dopo aver creato l'admin
                                 .requestMatchers(HttpMethod.POST, "/users").permitAll() // Endpoint di registrazione aperto a tutti
                                 .requestMatchers(HttpMethod.POST, "/professionista").permitAll() // Endpoint di registrazione aperto a tutti

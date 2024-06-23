@@ -4,10 +4,9 @@ package it.epicode.backend.capstone.utente;
 import com.cloudinary.Cloudinary;
 import it.epicode.backend.capstone.appuntamento.Appuntamento;
 import it.epicode.backend.capstone.appuntamento.AppuntamentoRepository;
+import it.epicode.backend.capstone.cloudinary.AvatarService;
 import it.epicode.backend.capstone.email.EmailService;
 import it.epicode.backend.capstone.errors.InvalidLoginException;
-import it.epicode.backend.capstone.professionista.Auth.LoginResponseProfessionistaDTO;
-import it.epicode.backend.capstone.professionista.Auth.RegisteredProfessionistaDTO;
 import it.epicode.backend.capstone.professionista.ProfessionistaRepository;
 import it.epicode.backend.capstone.ruoli.Ruoli;
 import it.epicode.backend.capstone.ruoli.RuoliRepository;
@@ -17,12 +16,10 @@ import it.epicode.backend.capstone.utente.appuntamentoDTO.ProfessionistaDTO;
 import it.epicode.backend.capstone.utente.appuntamentoDTO.UtenteAppuntamentoDTO;
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -30,9 +27,13 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -53,6 +54,9 @@ public class UserService {
     private final AuthenticationManager auth;
     private final JwtUtils jwt;
     private final EmailService emailService; // per gestire invio email di benvenuto
+    private final Cloudinary cloudinary;
+    private final AvatarService avatarService;
+
 
 
     @Value("${spring.servlet.multipart.max-file-size}")
@@ -134,7 +138,8 @@ public class UserService {
 
 
 
-    public Optional<LoginResponseWrapper> login(String username, String password) {
+    @Transactional
+    public String loginUser(String username, String password) {
         try {
             // Effettua il login
             log.debug("Tentativo di autenticazione per username: {}", username);
@@ -143,40 +148,12 @@ public class UserService {
             // Imposta il contesto di sicurezza
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-            var user = userRepository.findOneByUsername(username).orElseThrow(() -> new NoSuchElementException("Utente non trovato"));
+            var user = userRepository.findOneByUsername(username)
+                    .orElseThrow(() -> new NoSuchElementException("Utente non trovato"));
             log.debug("Utente trovato: {}", user);
 
             if (user.getRoles().stream().anyMatch(role -> role.getRoleType().equals(Ruoli.ROLES_UTENTE) || role.getRoleType().equals(Ruoli.ROLES_ADMIN))) {
-                var userDto = LoginResponseDTO.builder()
-                        .withUser(RegisteredUserDTO.builder()
-                                .withId(user.getId())
-                                .withFirstName(user.getFirstName())
-                                .withLastName(user.getLastName())
-                                .withEmail(user.getEmail())
-                                .withRoles(user.getRoles())
-                                .withUsername(user.getUsername())
-                                .withCittà(user.getCittà())
-                                .build())
-                        .build();
-                userDto.setToken(jwt.generateToken(authentication));
-                return Optional.of(new LoginResponseWrapper(userDto));
-            } else if (user.getRoles().stream().anyMatch(role -> role.getRoleType().equals(Ruoli.ROLES_PROFESSIONISTA))) {
-                var professionista = professionistaRepository.findById(user.getId()).orElseThrow(() -> new NoSuchElementException("Professionista non trovato"));
-                log.debug("Professionista trovato: {}", professionista);
-                var professionistaDto = LoginResponseProfessionistaDTO.builder()
-                        .withProfessionista(RegisteredProfessionistaDTO.builder()
-                                .withId(user.getId())
-                                .withFirstName(user.getFirstName())
-                                .withLastName(user.getLastName())
-                                .withEmail(user.getEmail())
-                                .withCittà(user.getCittà())
-                                .withRoles(user.getRoles())
-                                .withUsername(user.getUsername())
-                                .withSpecializzazione(professionista.getSpecializzazione())
-                                .build())
-                        .build();
-                professionistaDto.setToken(jwt.generateToken(authentication));
-                return Optional.of(new LoginResponseWrapper(professionistaDto));
+                return jwt.generateToken(authentication);
             }
         } catch (NoSuchElementException e) {
             log.error("User not found", e);
@@ -185,8 +162,9 @@ public class UserService {
             log.error("Authentication failed", e);
             throw new InvalidLoginException(username, password);
         }
-        return Optional.empty();
+        return null;
     }
+
 
     public RegisteredUserDTO register(RegisterUserDTO register){
         if(userRepository.existsByUsername(register.getUsername())){
@@ -235,8 +213,27 @@ public class UserService {
         RegisteredUserDTO response = new RegisteredUserDTO();
         BeanUtils.copyProperties(u, response);
         response.setRoles(List.of(roles));
+        emailService.sendWelcomeEmail(u.getEmail());
         return response;
 
     }
+    public String uploadUserAvatar(Long id, MultipartFile image) throws IOException {
+        return avatarService.uploadAvatar(id, image, false);
+    }
 
+    public String getUserAvatarUrl(Long id) {
+        return avatarService.getAvatarUrl(id, false);
+    }
+
+    public String deleteUserAvatar(Long id) throws IOException {
+        return avatarService.deleteAvatar(id, false);
+    }
+
+    public String updateUserAvatar(Long id, MultipartFile image) throws IOException {
+        return avatarService.updateAvatar(id, image, false);
+    }
+
+    public Optional<User> findOneByUsername(String username) {
+        return Optional.empty();
+    }
 }

@@ -1,24 +1,36 @@
 package it.epicode.backend.capstone.utente;
 
 
+import com.cloudinary.Cloudinary;
 import it.epicode.backend.capstone.errors.ApiValidationException;
 import it.epicode.backend.capstone.utente.Auth.*;
 import it.epicode.backend.capstone.utente.appuntamentoDTO.UtenteAppuntamentoDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
+@Slf4j
 public class UserController {
 
     @Autowired
     UserService user;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    private Cloudinary cloudinary;
 
     // Metodo per ottenere un autore specifico in base all'ID. Quando si effettua una richiesta GET a /api/autori/{id}, questo metodo viene chiamato e restituisce l'autore con l'ID specificato.
     @GetMapping("/{id}")
@@ -59,7 +71,6 @@ public class UserController {
                         .withLastName(model.lastName())
                         .withUsername(model.username())
                         .withEmail(model.email())
-                        .withAvatar(model.avatar())
                         .withCittà(model.città())
                         .withPassword(model.password())
                         .build());
@@ -68,17 +79,61 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseWrapper> login(@RequestBody @Validated LoginModel model, BindingResult validator) {
+    public ResponseEntity<String> loginUser(@RequestBody @Validated LoginModel model, BindingResult validator) {
         if (validator.hasErrors()) {
             throw new ApiValidationException(validator.getAllErrors());
         }
-        return new ResponseEntity<>(user.login(model.username(), model.password()).orElseThrow(), HttpStatus.OK);
+        return new ResponseEntity<>(user.loginUser(model.username(), model.password()), HttpStatus.OK);
     }
+
+
+
 
     @PostMapping("/registerAdmin")
     public ResponseEntity<RegisteredUserDTO> registerAdmin(@RequestBody RegisterUserDTO registerUser){
         return ResponseEntity.ok(user.registerAdmin(registerUser));
     }
+
+
+
+    @PostMapping("/{id}/avatar")
+    public ResponseEntity<String> uploadAvatar(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        try {
+            String url = user.uploadUserAvatar(id, file);
+            return ResponseEntity.ok(url);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload avatar");
+        }
+    }
+
+    @DeleteMapping("/{id}/avatar")
+    public ResponseEntity<String> deleteAvatar(@PathVariable Long id) {
+        try {
+            String response = user.deleteUserAvatar(id);
+            return ResponseEntity.ok(response);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to delete avatar");
+        }
+    }
+
+    @PutMapping("/{id}/avatar")
+    public ResponseEntity<String> updateAvatar(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        try {
+            String url = user.updateUserAvatar(id, file);
+            return ResponseEntity.ok(url);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update avatar");
+        }
+
+    }
+
+    @GetMapping("/{id}/avatar")
+    public ResponseEntity<String> getUserAvatarUrl(@PathVariable Long id) {
+        return ResponseEntity.ok(user.getUserAvatarUrl(id));
+    }
+
+
+
 }
 
 
