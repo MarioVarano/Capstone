@@ -7,6 +7,8 @@ import it.epicode.backend.capstone.appuntamento.AppuntamentoRepository;
 import it.epicode.backend.capstone.cloudinary.AvatarService;
 import it.epicode.backend.capstone.email.EmailService;
 import it.epicode.backend.capstone.errors.InvalidLoginException;
+import it.epicode.backend.capstone.professionista.Auth.LoginResponseProfessionistaDTO;
+import it.epicode.backend.capstone.professionista.Auth.RegisteredProfessionistaDTO;
 import it.epicode.backend.capstone.professionista.ProfessionistaRepository;
 import it.epicode.backend.capstone.ruoli.Ruoli;
 import it.epicode.backend.capstone.ruoli.RuoliRepository;
@@ -136,8 +138,67 @@ public class UserService {
     }
 
 
+    public Optional<LoginResponseWrapper> login(String username, String password) {
+        try {
+            //SI EFFETTUA IL LOGIN
+            //SI CREA UNA AUTENTICAZIONE OVVERO L'OGGETTO DI TIPO AUTHENTICATION
+            var a = auth.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+
+            a.getAuthorities(); //SERVE A RECUPERARE I RUOLI/IL RUOLO
+
+            //SI CREA UN CONTESTO DI SICUREZZA CHE SARA UTILIZZATO IN PIU OCCASIONI
+            SecurityContextHolder.getContext().setAuthentication(a);
+
+            var user = userRepository.findOneByUsername(username).orElseThrow();
+            if (user.getRoles().contains(new Ruoli(Ruoli.ROLES_UTENTE)) || user.getRoles().contains(new Ruoli(Ruoli.ROLES_ADMIN))){
+                var dto = LoginResponseDTO.builder()
+                        .withUser(RegisteredUserDTO.builder()
+                                .withId(user.getId())
+                                .withFirstName(user.getFirstName())
+                                .withLastName(user.getLastName())
+                                .withEmail(user.getEmail())
+                                .withRoles(user.getRoles())
+                                .withUsername(user.getUsername())
+                                .withCittà(user.getCittà())
+                                .build())
+                        .build();
+                dto.setToken(jwt.generateToken(a));
+                return Optional.of(new LoginResponseWrapper(dto));
+            } else if (user.getRoles().contains(new Ruoli(Ruoli.ROLES_PROFESSIONISTA))){
+                var prof = professionistaRepository.findById(user.getId()).get();
+                var dto = LoginResponseProfessionistaDTO.builder()
+                        .withProfessionista(RegisteredProfessionistaDTO.builder()
+                                .withId(prof.getId())
+                                .withFirstName(prof.getFirstName())
+                                .withLastName(prof.getLastName())
+                                .withEmail(prof.getEmail())
+                                .withCittà(prof.getCittà())
+                                .withRoles(prof.getRoles())
+                                .withUsername(prof.getUsername())
+                                .withSpecializzazione(prof.getSpecializzazione())
+                                .build())
+                        .build();
+                dto.setToken(jwt.generateToken(a));
+                return Optional.of(new LoginResponseWrapper(dto));
+            }
+
+            //UTILIZZO DI JWTUTILS PER GENERARE IL TOKEN UTILIZZANDO UNA AUTHENTICATION E LO ASSEGNA ALLA LOGINRESPONSEDTO
+
+        } catch (NoSuchElementException e) {
+            //ECCEZIONE LANCIATA SE LO USERNAME E SBAGLIATO E QUINDI L'UTENTE NON VIENE TROVATO
+            log.error("User not found", e);
+            throw new InvalidLoginException(username, password);
+        } catch (AuthenticationException e) {
+            //ECCEZIONE LANCIATA SE LA PASSWORD E SBAGLIATA
+            log.error("Authentication failed", e);
+            throw new InvalidLoginException(username, password);
+        }
+        return Optional.empty();
+    }
 
 
+
+    //metodo per loggare solo lo user, funziona anche quello che seleziona il tipo di utente
     @Transactional
     public String loginUser(String username, String password) {
         try {

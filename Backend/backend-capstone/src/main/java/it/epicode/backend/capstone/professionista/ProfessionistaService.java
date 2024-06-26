@@ -144,7 +144,7 @@ public class ProfessionistaService {
         return response;
     }
 
-
+    //metodo per loggare il professionista, utilizzo un altro metodo generico
     @Transactional
     public String loginProfessionista(String username, String password) {
         try {
