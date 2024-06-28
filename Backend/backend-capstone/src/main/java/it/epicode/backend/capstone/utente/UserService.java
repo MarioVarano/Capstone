@@ -159,7 +159,7 @@ public class UserService {
                                 .withEmail(user.getEmail())
                                 .withRoles(user.getRoles())
                                 .withUsername(user.getUsername())
-                                .withCittà(user.getCittà())
+                                .withCity(user.getCity())
                                 .build())
                         .build();
                 dto.setToken(jwt.generateToken(a));
@@ -172,7 +172,7 @@ public class UserService {
                                 .withFirstName(prof.getFirstName())
                                 .withLastName(prof.getLastName())
                                 .withEmail(prof.getEmail())
-                                .withCittà(prof.getCittà())
+                                .withCity(prof.getCity())
                                 .withRoles(prof.getRoles())
                                 .withUsername(prof.getUsername())
                                 .withSpecializzazione(prof.getSpecializzazione())

@@ -18,8 +18,8 @@ public record RegisterProfessionistaModel(
         @NotBlank(message = "La password non può contenere solo spazi vuoti")
         @Size(max = 125, message ="La password è troppo lunga max 20 caratteri")
         String password,
-        @NotBlank(message = "La città non può contenere solo spazi vuoti")
-        String città,
+        @NotBlank(message = "La city non può contenere solo spazi vuoti")
+        String city,
         @NotBlank(message = "La specializzazione non può contenere solo spazi vuoti")
         String specializzazione,
         @NotBlank(message = "La descrizione non può contenere solo spazi vuoti")

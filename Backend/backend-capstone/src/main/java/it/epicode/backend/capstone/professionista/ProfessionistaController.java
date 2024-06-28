@@ -6,7 +6,6 @@ import it.epicode.backend.capstone.professionista.Auth.RegisterProfessionistaMod
 import it.epicode.backend.capstone.professionista.Auth.RegisteredProfessionistaDTO;
 import it.epicode.backend.capstone.professionista.appuntamentoDTO.ProfessionistaAppuntamentoDTO;
 import it.epicode.backend.capstone.utente.Auth.LoginModel;
-import it.epicode.backend.capstone.utente.Auth.LoginResponseWrapper;
 import it.epicode.backend.capstone.utente.ResponsePrj;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -66,7 +65,7 @@ public class ProfessionistaController {
                         .withLastName(model.lastName())
                         .withUsername(model.username())
                         .withEmail(model.email())
-                        .withCittà(model.città())
+                        .withCity(model.city())
                         .withPassword(model.password())
                         .withSpecializzazione(model.specializzazione())
                         .withDescrizione(model.descrizione())

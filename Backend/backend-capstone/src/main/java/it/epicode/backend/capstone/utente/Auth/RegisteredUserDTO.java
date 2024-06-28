@@ -15,17 +15,17 @@ public class RegisteredUserDTO {
     String lastName;
     String username;
     String email;
-    String città;
+    String city;
     private List<Ruoli> roles;
 
     @Builder(setterPrefix = "with")
-    public RegisteredUserDTO(Long id, String firstName, String lastName, String username, String email,String città, List<Ruoli> roles) {
+    public RegisteredUserDTO(Long id, String firstName, String lastName, String username, String email,String city, List<Ruoli> roles) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.username = username;
         this.email = email;
-        this.città = città;
+        this.city = city;
         this.roles = roles;
     }
 }

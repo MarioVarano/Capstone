@@ -15,7 +15,7 @@ public class RegisterProfessionistaDTO {
     String email;
     String password;
     String avatar;
-    String città;
+    String city;
     String specializzazione;
     String descrizione;
 }

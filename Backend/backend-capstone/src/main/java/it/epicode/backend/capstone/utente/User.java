@@ -36,7 +36,7 @@ public class User  {
     private String password;
     private String avatar;
     @Column(length = 50, nullable = false)
-    private String città;
+    private String city;
     @ManyToMany(fetch = FetchType.EAGER)
     private final List<Ruoli> roles = new ArrayList<>();
 }

@@ -16,7 +16,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -71,7 +70,7 @@ public class UserController {
                         .withLastName(model.lastName())
                         .withUsername(model.username())
                         .withEmail(model.email())
-                        .withCittà(model.città())
+                        .withCity(model.city())
                         .withPassword(model.password())
                         .build());
 

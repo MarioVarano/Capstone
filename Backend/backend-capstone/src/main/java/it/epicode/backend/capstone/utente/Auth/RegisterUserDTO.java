@@ -15,5 +15,5 @@ public class RegisterUserDTO {
     String email;
     String password;
     String avatar;
-    String città;
+    String city;
 }
