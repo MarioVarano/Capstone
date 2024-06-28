@@ -77,7 +77,7 @@ public class UserController {
 
         return  new ResponseEntity<> (registeredUser, HttpStatus.OK);
     }
-    @PostMapping("/loginp")
+    @PostMapping("/login")
     public ResponseEntity<LoginResponseWrapper> login(@RequestBody @Validated LoginModel model, BindingResult validator) {
         if (validator.hasErrors()) {
             throw  new ApiValidationException(validator.getAllErrors());
@@ -85,7 +85,7 @@ public class UserController {
         return new ResponseEntity<>(user.login(model.username(), model.password()).orElseThrow(), HttpStatus.OK);
     }
 
-    @PostMapping("/login")
+    @PostMapping("/loginp")
     public ResponseEntity<String> loginUser(@RequestBody @Validated LoginModel model, BindingResult validator) {
         if (validator.hasErrors()) {
             throw new ApiValidationException(validator.getAllErrors());

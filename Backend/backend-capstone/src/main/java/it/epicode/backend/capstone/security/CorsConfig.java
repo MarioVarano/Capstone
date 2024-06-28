@@ -13,14 +13,27 @@ public class CorsConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration configuration = new CorsConfiguration();
-        //UNA VOLTA DEPLOYATO IL FRONTEND BISOGNA AGGIUNGERE L'ORIGIN DOVE E STATO FATTO IL DEPLOY
+
+        // Configura l'origine permessa
         configuration.addAllowedOrigin("http://localhost:4200");
-        configuration.addAllowedMethod("");
-        configuration.addAllowedHeader("");
+
+        // Configura i metodi HTTP permessi
+        configuration.addAllowedMethod("GET");
+        configuration.addAllowedMethod("POST");
+        configuration.addAllowedMethod("PUT");
+        configuration.addAllowedMethod("DELETE");
+        configuration.addAllowedMethod("OPTIONS");
+
+        // Configura gli header permessi
+        configuration.addAllowedHeader("*");
+
+        // Configura le credenziali
         configuration.setAllowCredentials(true);
 
-        // Setta i permessi per le richieste preflight (OPTIONS)
+        // Configura gli header esposti
         configuration.addExposedHeader("Authorization");
+
+        // Configura la cache delle preflight
         configuration.setMaxAge(3600L); // Cache delle preflight per 1 ora
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -28,4 +41,5 @@ public class CorsConfig {
 
         return new CorsFilter(source);
     }
+
 }
