@@ -1,5 +1,7 @@
 package it.epicode.backend.capstone.appuntamento;
 
+import it.epicode.backend.capstone.errors.GeneralResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,9 +28,14 @@ public class AppuntamentoController {
 
     // Metodo per creare un nuovo appuntamento.
     @PostMapping
-    public ResponseEntity<Response> create(@RequestBody Request request) {
-        return ResponseEntity.ok(appuntamentoService.createAppointment(request));
+    public ResponseEntity<GeneralResponse<Response>> create(@RequestBody Request request) {
+        GeneralResponse<Response> response = appuntamentoService.createAppointment(request);
+        if (response.getErrorMessage() != null) {
+            return ResponseEntity.badRequest().body(response);
+        }
+        return ResponseEntity.ok(response);
     }
+
 
     // Metodo per modificare un appuntamento esistente.
     @PutMapping("/{id}")

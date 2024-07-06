@@ -1,6 +1,7 @@
 package it.epicode.backend.capstone.appuntamento;
 
 
+import it.epicode.backend.capstone.errors.GeneralResponse;
 import it.epicode.backend.capstone.professionista.Professionista;
 import it.epicode.backend.capstone.professionista.ProfessionistaRepository;
 import it.epicode.backend.capstone.utente.User;
@@ -37,51 +38,56 @@ public class AppuntamentoService {
     JavaMailSender emailSender;
 
     @Transactional
-    public Response createAppointment(@Valid Request request) {
-        Long userId = request.getIdUtente();
-        Long professionalId = request.getIdProfessionista();
+    public GeneralResponse<Response> createAppointment(@Valid Request request) {
+        try {
+            Long userId = request.getIdUtente();
+            Long professionalId = request.getIdProfessionista();
 
-        // Verifica che gli ID non siano nulli
-        if (userId == null || professionalId == null) {
-            log.error("User ID or Professional ID is null. User ID: {}, Professional ID: {}", userId, professionalId);
-            throw new IllegalArgumentException("ID utente e professionista non devono essere nulli");
+            // Verifica che gli ID non siano nulli
+            if (userId == null || professionalId == null) {
+                log.error("User ID or Professional ID is null. User ID: {}, Professional ID: {}", userId, professionalId);
+                throw new IllegalArgumentException("ID utente e professionista non devono essere nulli");
+            }
+
+            User utente = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("Utente non trovato"));
+            Professionista professionista = professionistaRepository.findById(professionalId)
+                    .orElseThrow(() -> new RuntimeException("Professionista non trovato"));
+
+            LocalTime oraPrenotazione = LocalTime.parse(request.getOraPrenotazione());
+            LocalDateTime dataOraPrenotazione = LocalDateTime.of(request.getDataPrenotazione(), oraPrenotazione);
+
+            if (utenteHasAppointmentAtTime(utente.getId(), dataOraPrenotazione)) {
+                throw new IllegalArgumentException("L'utente ha già un appuntamento a questo orario.");
+            }
+
+            Appuntamento appuntamento = new Appuntamento();
+            appuntamento.setUtente(utente);
+            appuntamento.setProfessionista(professionista);
+            appuntamento.setDataPrenotazione(request.getDataPrenotazione());
+            appuntamento.setOraPrenotazione(String.valueOf(oraPrenotazione));
+            appuntamento.setConfermato(false);
+
+            // Validazione appuntamento
+            appuntamento.validateAppuntamento();
+            if (isAppointmentSlotAvailable(appuntamento)) {
+                throw new IllegalArgumentException("L'orario richiesto è già occupato.");
+            }
+
+            // Salvataggio appuntamento
+            appuntamentoRepository.save(appuntamento);
+
+            // Invia email di conferma
+            sendConfirmationEmailToProfessionista(appuntamento);
+
+            Response response = new Response();
+            BeanUtils.copyProperties(appuntamento, response);
+            return new GeneralResponse<>(response);
+        } catch (Exception e) {
+            return new GeneralResponse<>(e.getMessage());
         }
-
-        User utente = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("Utente non trovato"));
-        Professionista professionista = professionistaRepository.findById(professionalId)
-                .orElseThrow(() -> new RuntimeException("Professionista non trovato"));
-
-        LocalTime oraPrenotazione = LocalTime.parse(request.getOraPrenotazione());
-        LocalDateTime dataOraPrenotazione = LocalDateTime.of(request.getDataPrenotazione(), oraPrenotazione);
-
-        if (utenteHasAppointmentAtTime(utente.getId(), dataOraPrenotazione)) {
-            throw new IllegalArgumentException("L'utente ha già un appuntamento a questo orario.");
-        }
-
-        Appuntamento appuntamento = new Appuntamento();
-        appuntamento.setUtente(utente);
-        appuntamento.setProfessionista(professionista);
-        appuntamento.setDataPrenotazione(request.getDataPrenotazione());
-        appuntamento.setOraPrenotazione(String.valueOf(oraPrenotazione));
-        appuntamento.setConfermato(false);
-
-        // Validazione appuntamento
-        appuntamento.validateAppuntamento();
-        if (isAppointmentSlotAvailable(appuntamento)) {
-            throw new IllegalArgumentException("L'orario richiesto è già occupato.");
-        }
-
-        // Salvataggio appuntamento
-        appuntamentoRepository.save(appuntamento);
-
-        // Invia email di conferma
-        sendConfirmationEmailToProfessionista(appuntamento);
-
-        Response response = new Response();
-        BeanUtils.copyProperties(appuntamento, response);
-        return response;
     }
+
 
     @Transactional
     public void confirmAppointment(Long id) {
