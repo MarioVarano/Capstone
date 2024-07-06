@@ -7,12 +7,14 @@ import lombok.Data;
 @Data
 public class LoginResponseProfessionistaDTO {
     RegisteredProfessionistaDTO professionista;
+    String specializzazione;
     String token;
 
     @Builder(setterPrefix = "with")
-    public LoginResponseProfessionistaDTO(RegisteredProfessionistaDTO professionista, String token) {
+    public LoginResponseProfessionistaDTO(RegisteredProfessionistaDTO professionista, String token,String specializzazione) {
         this.professionista = professionista;
         this.token = token;
+        this.specializzazione = specializzazione;
     }
 }
 

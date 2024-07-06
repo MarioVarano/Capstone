@@ -5,6 +5,7 @@ import com.cloudinary.Cloudinary;
 import it.epicode.backend.capstone.appuntamento.Appuntamento;
 import it.epicode.backend.capstone.appuntamento.AppuntamentoRepository;
 import it.epicode.backend.capstone.cloudinary.AvatarService;
+import it.epicode.backend.capstone.cloudinary.UploadAvatarResponse;
 import it.epicode.backend.capstone.email.EmailService;
 import it.epicode.backend.capstone.errors.InvalidLoginException;
 import it.epicode.backend.capstone.professionista.Auth.LoginResponseProfessionistaDTO;
@@ -88,16 +89,20 @@ public class UserService {
 
 
 
-    // PUT
-    public RegisteredUserDTO modify(Long id, @Valid RegisterUserModel RegisterUserModel){
+    @Transactional
+    public RegisteredUserDTO modify(Long id,  RegisterUserModel RegisterUserModel){
         // Questo metodo modifica un entity esistente.
         // Prima verifica se l'entity esiste nel database. Se non esiste, viene generata un'eccezione.
         if(!userRepository.existsById(id)){
-            throw new EntityNotFoundException("Autore non trovato");
+            throw new EntityNotFoundException("Utente non trovato");
         }
         // Se l'entity esiste, le sue proprietà vengono modificate con quelle presenti nell'oggetto AutoreRegisterUserModel.
         User entity = userRepository.findById(id).get();
-        BeanUtils.copyProperties(RegisterUserModel, entity);
+        BeanUtils.copyProperties(RegisterUserModel, entity, "password");
+        if (RegisterUserModel.password() != null && !RegisterUserModel.password().isEmpty()) {
+            String pass = encoder.encode(RegisterUserModel.password());
+            entity.setPassword(pass);
+        }
         // L'entity modificato viene quindi salvato nel database e le sue proprietà vengono copiate in un oggetto AutoreRegisterdUserDTO.
         userRepository.save(entity);
         RegisteredUserDTO RegisterdUserDTO = new RegisteredUserDTO();
@@ -163,6 +168,7 @@ public class UserService {
                                 .build())
                         .build();
                 dto.setToken(jwt.generateToken(a));
+                dto.setSpecializzazione(Ruoli.ROLES_UTENTE);
                 return Optional.of(new LoginResponseWrapper(dto));
             } else if (user.getRoles().contains(new Ruoli(Ruoli.ROLES_PROFESSIONISTA))){
                 var prof = professionistaRepository.findById(user.getId()).get();
@@ -179,6 +185,7 @@ public class UserService {
                                 .build())
                         .build();
                 dto.setToken(jwt.generateToken(a));
+                dto.setSpecializzazione(Ruoli.ROLES_PROFESSIONISTA);
                 return Optional.of(new LoginResponseWrapper(dto));
             }
 
@@ -278,7 +285,7 @@ public class UserService {
         return response;
 
     }
-    public String uploadUserAvatar(Long id, MultipartFile image) throws IOException {
+    public UploadAvatarResponse uploadUserAvatar(Long id, MultipartFile image) throws IOException {
         return avatarService.uploadAvatar(id, image, false);
     }
 
@@ -290,7 +297,7 @@ public class UserService {
         return avatarService.deleteAvatar(id, false);
     }
 
-    public String updateUserAvatar(Long id, MultipartFile image) throws IOException {
+    public UploadAvatarResponse updateUserAvatar(Long id, MultipartFile image) throws IOException {
         return avatarService.updateAvatar(id, image, false);
     }
 

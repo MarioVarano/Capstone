@@ -55,32 +55,21 @@ public class ApplicationSecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults()) // Utilizza la configurazione CORS
+                .cors(Customizer.withDefaults()) // Configurazione CORS
                 .authorizeHttpRequests(authorize ->
-                        authorize // Configurazione della protezione dei vari endpoint
+                        authorize // Configurazione dei permessi per gli endpoint
+                                .requestMatchers(HttpMethod.GET, "/professionista/all").permitAll() // Accessibile a tutti
                                 .requestMatchers("/users/login").permitAll()
-                                .requestMatchers("/users/loginp").permitAll()
-
-                                .requestMatchers("/professionista/login").permitAll()
-
-                                .requestMatchers("/users/registerAdmin").permitAll() // Da cancellare dopo aver creato l'admin
-                                .requestMatchers(HttpMethod.POST, "/users").permitAll() // Endpoint di registrazione aperto a tutti
-                                .requestMatchers(HttpMethod.POST, "/professionista").permitAll() // Endpoint di registrazione aperto a tutti
+                                .requestMatchers("/users/registerAdmin").permitAll() // Rimuovere dopo la creazione dell'admin
+                                .requestMatchers(HttpMethod.POST, "/users", "/professionista").permitAll()
                                 .requestMatchers("/api/appuntamento/**").authenticated()
+                                .requestMatchers("/users/**").hasAnyAuthority("UTENTE", "ADMIN")
+                                .requestMatchers("/professionista/**").hasAnyAuthority("PROFESSIONISTA", "ADMIN")
 
-                                // Configurazione CRUD per gli utenti
-                                .requestMatchers("/users/**").hasAnyAuthority("UTENTE", "ADMIN") // Tutte le operazioni per utenti
-
-                                // Configurazione CRUD per i professionisti
-                                .requestMatchers("/professionista/**").hasAnyAuthority("PROFESSIONISTA", "ADMIN") // Tutte le operazioni per professionisti
-
-
-                                // Configurazione che garantisce che gli admin abbiano accesso a tutto
                                 .requestMatchers("/**").hasAuthority("ADMIN")
                 )
                 .httpBasic(Customizer.withDefaults())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // Comunica alla filter chain quale filtro utilizzare, senza questa riga di codice il filtro non viene richiamato
                 .addFilterBefore(authenticationJwtToken(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

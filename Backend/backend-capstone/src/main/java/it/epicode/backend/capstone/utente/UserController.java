@@ -2,6 +2,7 @@ package it.epicode.backend.capstone.utente;
 
 
 import com.cloudinary.Cloudinary;
+import it.epicode.backend.capstone.cloudinary.UploadAvatarResponse;
 import it.epicode.backend.capstone.errors.ApiValidationException;
 import it.epicode.backend.capstone.utente.Auth.*;
 import it.epicode.backend.capstone.utente.appuntamentoDTO.UtenteAppuntamentoDTO;
@@ -84,16 +85,6 @@ public class UserController {
         return new ResponseEntity<>(user.login(model.username(), model.password()).orElseThrow(), HttpStatus.OK);
     }
 
-    @PostMapping("/loginp")
-    public ResponseEntity<String> loginUser(@RequestBody @Validated LoginModel model, BindingResult validator) {
-        if (validator.hasErrors()) {
-            throw new ApiValidationException(validator.getAllErrors());
-        }
-        return new ResponseEntity<>(user.loginUser(model.username(), model.password()), HttpStatus.OK);
-    }
-
-
-
 
     @PostMapping("/registerAdmin")
     public ResponseEntity<RegisteredUserDTO> registerAdmin(@RequestBody RegisterUserDTO registerUser){
@@ -103,9 +94,9 @@ public class UserController {
 
 
     @PostMapping("/{id}/avatar")
-    public ResponseEntity<String> uploadAvatar(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> uploadAvatar(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {
-            String url = user.uploadUserAvatar(id, file);
+            UploadAvatarResponse url = user.uploadUserAvatar(id, file);
             return ResponseEntity.ok(url);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload avatar");
@@ -123,9 +114,9 @@ public class UserController {
     }
 
     @PutMapping("/{id}/avatar")
-    public ResponseEntity<String> updateAvatar(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> updateAvatar(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {
-            String url = user.updateUserAvatar(id, file);
+            UploadAvatarResponse url = user.updateUserAvatar(id, file);
             return ResponseEntity.ok(url);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update avatar");

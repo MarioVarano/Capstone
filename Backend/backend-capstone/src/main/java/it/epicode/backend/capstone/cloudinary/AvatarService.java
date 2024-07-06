@@ -34,7 +34,7 @@ public class AvatarService {
 
 
     @Transactional
-    public String uploadAvatar(Long id, MultipartFile image, boolean isProfessionista) throws IOException {
+    public UploadAvatarResponse uploadAvatar(Long id, MultipartFile image, boolean isProfessionista) throws IOException {
         long maxFileSize = getMaxFileSizeInBytes();
         if (image.getSize() > maxFileSize) {
             throw new FileSizeExceededException("File size exceeds the maximum allowed size");
@@ -57,9 +57,10 @@ public class AvatarService {
             user.setAvatar(newPublicId);
             userRepository.save(user);
         }
-
+        UploadAvatarResponse response = new UploadAvatarResponse();
         // Recupera l'URL dell'immagine caricata
-        return cloudinary.url().publicId(newPublicId).generate();
+        response.setUrl(cloudinary.url().publicId(newPublicId).generate());
+        return response;
     }
 
     @Transactional
@@ -85,7 +86,7 @@ public class AvatarService {
     }
 
     @Transactional
-    public String updateAvatar(Long id, MultipartFile updatedImage, boolean isProfessionista) throws IOException {
+    public UploadAvatarResponse updateAvatar(Long id, MultipartFile updatedImage, boolean isProfessionista) throws IOException {
         deleteAvatar(id, isProfessionista);
         return uploadAvatar(id, updatedImage, isProfessionista);
     }
@@ -111,7 +112,7 @@ public class AvatarService {
             cloudinary.uploader().destroy(existingPublicId, ObjectUtils.emptyMap());
         }
         var uploadResult = cloudinary.uploader().upload(image.getBytes(), ObjectUtils.emptyMap());
-        return (String) uploadResult.get("public_id");
+        return (String) uploadResult.get("url");
     }
 
     private void deleteImage(String publicId) throws IOException {

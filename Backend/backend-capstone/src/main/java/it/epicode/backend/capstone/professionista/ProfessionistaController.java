@@ -1,11 +1,11 @@
 package it.epicode.backend.capstone.professionista;
 
+import it.epicode.backend.capstone.cloudinary.UploadAvatarResponse;
 import it.epicode.backend.capstone.errors.ApiValidationException;
 import it.epicode.backend.capstone.professionista.Auth.RegisterProfessionistaDTO;
 import it.epicode.backend.capstone.professionista.Auth.RegisterProfessionistaModel;
 import it.epicode.backend.capstone.professionista.Auth.RegisteredProfessionistaDTO;
 import it.epicode.backend.capstone.professionista.appuntamentoDTO.ProfessionistaAppuntamentoDTO;
-import it.epicode.backend.capstone.utente.Auth.LoginModel;
 import it.epicode.backend.capstone.utente.ResponsePrj;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,8 +31,8 @@ public class ProfessionistaController {
         return ResponseEntity.ok(professionistaService.findById(id));
     }
 
-    @GetMapping
-    public ResponseEntity<List<ResponsePrj>> findAll() {
+    @GetMapping("/all")
+    public ResponseEntity<List<Professionista>> findAll() {
         return ResponseEntity.ok(professionistaService.findAll());
     }
 
@@ -75,17 +75,10 @@ public class ProfessionistaController {
     }
 
 
-    @PostMapping("/login")
-    public ResponseEntity<String> loginProfessionista(@RequestBody @Validated LoginModel model, BindingResult validator) {
-        if (validator.hasErrors()) {
-            throw new ApiValidationException(validator.getAllErrors());
-        }
-        return new ResponseEntity<>(professionistaService.loginProfessionista(model.username(), model.password()), HttpStatus.OK);
-    }
     @PostMapping("/{id}/avatar")
-    public ResponseEntity<String> uploadAvatar(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> uploadAvatar(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {
-            String url = professionistaService.uploadProfessionistaAvatar(id, file);
+            UploadAvatarResponse url = professionistaService.uploadProfessionistaAvatar(id, file);
             return ResponseEntity.ok(url);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload avatar");
@@ -103,9 +96,9 @@ public class ProfessionistaController {
     }
 
     @PutMapping("/{id}/avatar")
-    public ResponseEntity<String> updateAvatar(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> updateAvatar(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
         try {
-            String url = professionistaService.updateProfessionistaAvatar(id, file);
+            UploadAvatarResponse url = professionistaService.updateProfessionistaAvatar(id, file);
             return ResponseEntity.ok(url);
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to update avatar");
@@ -116,6 +109,17 @@ public class ProfessionistaController {
     public ResponseEntity<String> getAvatar(@PathVariable Long id) {
         String url = professionistaService.getProfessionistaAvatarUrl(id);
         return ResponseEntity.ok(url);
+    }
+
+
+    @GetMapping("city/{city}")
+    public ResponseEntity<List<Professionista>> findByCity(@PathVariable String city) {
+        return ResponseEntity.ok(professionistaService.findByCity(city));
+    }
+
+    @GetMapping("specializzazione/{specializzazione}")
+    public ResponseEntity<List<Professionista>> findBySpecializzazione(@PathVariable String specializzazione) {
+        return ResponseEntity.ok(professionistaService.findBySpecializzazione(specializzazione));
     }
 
 

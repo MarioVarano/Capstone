@@ -11,7 +11,10 @@ public interface ProfessionistaRepository extends JpaRepository<Professionista,L
 
     boolean existsByUsername(String username);
 
-    User findByEmail(String email);
+    List<Professionista> findByCity(String city);
+    List<Professionista> findBySpecializzazione(String specializzazione);
+
+
     boolean existsByEmail(String email);
 
 }

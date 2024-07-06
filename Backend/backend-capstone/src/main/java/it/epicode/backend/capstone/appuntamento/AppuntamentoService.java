@@ -38,9 +38,18 @@ public class AppuntamentoService {
 
     @Transactional
     public Response createAppointment(@Valid Request request) {
-        User utente = userRepository.findById(request.getIdUtente())
+        Long userId = request.getIdUtente();
+        Long professionalId = request.getIdProfessionista();
+
+        // Verifica che gli ID non siano nulli
+        if (userId == null || professionalId == null) {
+            log.error("User ID or Professional ID is null. User ID: {}, Professional ID: {}", userId, professionalId);
+            throw new IllegalArgumentException("ID utente e professionista non devono essere nulli");
+        }
+
+        User utente = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Utente non trovato"));
-        Professionista professionista = professionistaRepository.findById(request.getIdProfessionista())
+        Professionista professionista = professionistaRepository.findById(professionalId)
                 .orElseThrow(() -> new RuntimeException("Professionista non trovato"));
 
         LocalTime oraPrenotazione = LocalTime.parse(request.getOraPrenotazione());
