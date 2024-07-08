@@ -146,38 +146,44 @@ public class AppuntamentoService {
         emailSender.send(message);
     }
 
-    public Response updateAppuntamento(Long id, @Valid Request request) {
-        if (!appuntamentoRepository.existsById(id)) {
-            throw new EntityNotFoundException("Appuntamento non trovato");
+    public GeneralResponse<Response> updateAppuntamento(Long id, @Valid Request request) {
+        try {
+            if (!appuntamentoRepository.existsById(id)) {
+                throw new EntityNotFoundException("Appuntamento non trovato");
+            }
+            if (!professionistaRepository.existsById(request.getIdProfessionista())) {
+                throw new EntityNotFoundException("Professionista non trovato");
+            }
+            if (!userRepository.existsById(request.getIdUtente())) {
+                throw new EntityNotFoundException("Utente non trovato");
+            }
+
+            Appuntamento entity = appuntamentoRepository.findById(id).get();
+            Professionista professionista = professionistaRepository.findById(request.getIdProfessionista()).get();
+            User utente = userRepository.findById(request.getIdUtente()).get();
+
+            entity.setProfessionista(professionista);
+            entity.setUtente(utente);
+            entity.setDataPrenotazione(request.getDataPrenotazione());
+            entity.setOraPrenotazione(request.getOraPrenotazione());
+            entity.setConfermato(false);
+
+            entity.validateAppuntamento();
+
+            if (isAppointmentSlotAvailable(entity)) {
+                throw new IllegalArgumentException("L'orario richiesto è già occupato.");
+            }
+
+            appuntamentoRepository.save(entity);
+
+            Response response = new Response();
+            BeanUtils.copyProperties(entity, response);
+            return new GeneralResponse<>(response);
+        } catch (Exception e) {
+            return new GeneralResponse<>(e.getMessage());
         }
-        if (!professionistaRepository.existsById(request.getIdProfessionista())) {
-            throw new EntityNotFoundException("Professionista non trovato");
-        }
-        if (!userRepository.existsById(request.getIdUtente())) {
-            throw new EntityNotFoundException("Utente non trovato");
-        }
-        Appuntamento entity = appuntamentoRepository.findById(id).get();
-        Professionista professionista = professionistaRepository.findById(request.getIdProfessionista()).get();
-        User utente = userRepository.findById(request.getIdUtente()).get();
-
-        entity.setProfessionista(professionista);
-        entity.setUtente(utente);
-        entity.setDataPrenotazione(request.getDataPrenotazione());
-        entity.setOraPrenotazione(request.getOraPrenotazione());
-        entity.setConfermato(false);
-
-        entity.validateAppuntamento();
-
-        if (isAppointmentSlotAvailable(entity)) {
-            throw new IllegalArgumentException("L'orario richiesto è già occupato.");
-        }
-
-        appuntamentoRepository.save(entity);
-
-        Response response = new Response();
-        BeanUtils.copyProperties(entity, response);
-        return response;
     }
+
 
     public String deleteAppointment(Long id) {
         if (!appuntamentoRepository.existsById(id)) {

@@ -39,8 +39,12 @@ public class AppuntamentoController {
 
     // Metodo per modificare un appuntamento esistente.
     @PutMapping("/{id}")
-    public ResponseEntity<Response> modify(@PathVariable Long id, @RequestBody Request request) {
-        return ResponseEntity.ok(appuntamentoService.updateAppuntamento(id, request));
+    public ResponseEntity<GeneralResponse<Response>> modify(@PathVariable Long id, @RequestBody Request request) {
+        GeneralResponse<Response> response = appuntamentoService.updateAppuntamento(id, request);
+        if (response.getErrorMessage() != null) {
+            return ResponseEntity.badRequest().body(response);
+        }
+        return ResponseEntity.ok(response);
     }
 
     // Metodo per eliminare un appuntamento.
