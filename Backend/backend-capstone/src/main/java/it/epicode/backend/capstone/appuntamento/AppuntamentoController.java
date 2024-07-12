@@ -3,6 +3,7 @@ package it.epicode.backend.capstone.appuntamento;
 import it.epicode.backend.capstone.errors.GeneralResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -65,11 +66,16 @@ public class AppuntamentoController {
     }
 
     // Endpoint per confermare un appuntamento
-    @GetMapping("/confirm/{id}")
+    @PostMapping("/confirm/{id}")
     public ResponseEntity<String> confirmAppointment(@PathVariable Long id) {
-        appuntamentoService.confirmAppointment(id);
-        return ResponseEntity.ok("Appuntamento confermato.");
+        try {
+            appuntamentoService.confirmAppointment(id);
+            return ResponseEntity.ok("Appuntamento confermato.");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Errore nella conferma dell'appuntamento.");
+        }
     }
+
 
 
 

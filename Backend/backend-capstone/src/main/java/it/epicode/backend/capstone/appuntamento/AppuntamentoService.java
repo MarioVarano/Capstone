@@ -133,9 +133,10 @@ public class AppuntamentoService {
         message.setTo(appuntamento.getProfessionista().getEmail());
         message.setSubject("Nuovo appuntamento da confermare");
         message.setText("Hai un nuovo appuntamento da confermare. Clicca sul link per confermare: " +
-                "http://localhost:8080/api/appuntamento/confirm/" + appuntamento.getId());
+                "http://localhost:4200/confirm-appointment?id=" + appuntamento.getId());
         emailSender.send(message);
     }
+
 
     private void sendConfirmationEmailToUtente(Appuntamento appuntamento) {
         SimpleMailMessage message = new SimpleMailMessage();

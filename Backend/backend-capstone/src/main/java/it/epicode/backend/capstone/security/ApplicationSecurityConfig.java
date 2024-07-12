@@ -58,14 +58,14 @@ public class ApplicationSecurityConfig {
                 .cors(Customizer.withDefaults()) // Configurazione CORS
                 .authorizeHttpRequests(authorize ->
                         authorize // Configurazione dei permessi per gli endpoint
-                                .requestMatchers(HttpMethod.GET, "/professionista/all").permitAll() // Accessibile a tutti
+                                .requestMatchers(HttpMethod.POST, "/api/appuntamento/confirm/**").permitAll() // Permetti accesso pubblico
+                                .requestMatchers(HttpMethod.GET, "/professionista/all").permitAll()
                                 .requestMatchers("/users/login").permitAll()
-                                .requestMatchers("/users/registerAdmin").permitAll() // Rimuovere dopo la creazione dell'admin
+                                .requestMatchers("/users/registerAdmin").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/users", "/professionista").permitAll()
                                 .requestMatchers("/api/appuntamento/**").authenticated()
                                 .requestMatchers("/users/**").hasAnyAuthority("UTENTE", "ADMIN")
                                 .requestMatchers("/professionista/**").hasAnyAuthority("PROFESSIONISTA", "ADMIN")
-
                                 .requestMatchers("/**").hasAuthority("ADMIN")
                 )
                 .httpBasic(Customizer.withDefaults())
