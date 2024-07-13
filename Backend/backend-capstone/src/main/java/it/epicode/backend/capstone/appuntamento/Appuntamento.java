@@ -31,15 +31,15 @@ public class Appuntamento {
     @ToString.Exclude
     @JsonIgnoreProperties("appuntamenti")
     private User utente;
-    //@ManyToOne
-    //@JoinColumn(name = "prestazione_id")
-    //private Prestazione prestazione;
 
     @Column(nullable = false)
     private String oraPrenotazione;
     @Column(nullable = false)
     private boolean confermato = false;
     private LocalDate dataPrenotazione;
+
+    @Column(nullable = false)
+    private String descrizione;
 
 
     /*
