@@ -63,6 +63,7 @@ public class ApplicationSecurityConfig {
                                 .requestMatchers("/users/login").permitAll()
                                 .requestMatchers("/users/registerAdmin").permitAll()
                                 .requestMatchers(HttpMethod.POST, "/users", "/professionista").permitAll()
+                                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/swagger-ui.html", "/webjars/**").permitAll()
                                 .requestMatchers("/api/appuntamento/**").authenticated()
                                 .requestMatchers("/users/**").hasAnyAuthority("UTENTE", "ADMIN")
                                 .requestMatchers("/professionista/**").hasAnyAuthority("PROFESSIONISTA", "ADMIN")
